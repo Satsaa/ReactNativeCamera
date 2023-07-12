@@ -1,14 +1,20 @@
 import React from 'react';
-import _cloneDeep from 'lodash/cloneDeep';
-import { requireNativeComponent, findNodeHandle, NativeModules, processColor } from 'react-native';
+import { requireNativeComponent, findNodeHandle, NativeModules } from 'react-native';
 import { CameraApi } from './types';
-import { CameraProps } from './Camera';
+import { CameraProps, NativeProps } from './Camera';
 
 const { RNCameraKitModule } = NativeModules;
-const NativeCamera = requireNativeComponent('CKCameraManager');
+const NativeCamera = requireNativeComponent<NativeProps>('CKCameraManager');
 
-const Camera = React.forwardRef((props: CameraProps, ref) => {
-  const nativeRef = React.useRef();
+const Camera = React.forwardRef(({
+  cameraType = 'back',
+  flashMode = 'auto',
+  focusMode = true,
+  torchMode = false,
+  zoomMode = true,
+  onReadCode,
+}: CameraProps, ref: any) => {
+  const nativeRef = React.useRef<any>();
 
   React.useImperativeHandle<any, CameraApi>(ref, () => ({
     capture: async (options = {}) => {
@@ -24,17 +30,15 @@ const Camera = React.forwardRef((props: CameraProps, ref) => {
     },
   }));
 
-  const transformedProps: CameraProps = _cloneDeep(props);
-  transformedProps.ratioOverlayColor = processColor(props.ratioOverlayColor);
-  transformedProps.frameColor = processColor(props.frameColor);
-  transformedProps.laserColor = processColor(props.laserColor);
-
   return (
     <NativeCamera
-      style={{ minWidth: 100, minHeight: 100 }}
-      flashMode={props.flashMode}
       ref={nativeRef}
-      {...transformedProps}
+      cameraType={cameraType}
+      flashMode={typeof flashMode === 'boolean' ? flashMode ? 'on' : 'off' : 'auto'}
+      torchMode={torchMode ? 'on' : 'off'}
+      focusMode={focusMode ? 'on' : 'off'}
+      zoomMode={zoomMode ? 'on' : 'off'}
+      onReadCode={onReadCode}
     />
   );
 });

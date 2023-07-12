@@ -80,28 +80,9 @@ class CKCameraManager : SimpleViewManager<CKCamera>() {
         view.setScanBarcode(enabled)
     }
 
-    @ReactProp(name = "showFrame")
-    fun setShowFrame(view: CKCamera, enabled: Boolean) {
-        view.setShowFrame(enabled)
-    }
-
-    @ReactProp(name = "laserColor", defaultInt = Color.RED)
-    fun setLaserColor(view: CKCamera, @ColorInt color: Int) {
-        view.setLaserColor(color)
-    }
-
-    @ReactProp(name = "frameColor", defaultInt = Color.GREEN)
-    fun setFrameColor(view: CKCamera, @ColorInt color: Int) {
-        view.setFrameColor(color)
-    }
-
     @ReactProp(name = "outputPath")
     fun setOutputPath(view: CKCamera, path: String) {
         view.setOutputPath(path)
     }
 
-    @ReactProp(name = "shutterAnimationDuration")
-    fun setShutterAnimationDuration(view: CKCamera, duration: Int) {
-        view.setShutterAnimationDuration(duration)
-    }
 }

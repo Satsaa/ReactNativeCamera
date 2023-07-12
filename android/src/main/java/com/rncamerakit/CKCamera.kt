@@ -14,6 +14,7 @@ import android.media.MediaActionSound
 import android.net.Uri
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Range
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -42,33 +43,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 
-class RectOverlay constructor(context: Context) :
-        View(context) {
-
-    private val rectBounds: MutableList<RectF> = mutableListOf()
-    private val paint = Paint().apply {
-        style = Paint.Style.STROKE
-        color = ContextCompat.getColor(context, android.R.color.holo_green_light)
-        strokeWidth = 5f
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        // Pass it a list of RectF (rectBounds)
-        rectBounds.forEach { canvas.drawRect(it, paint) }
-    }
-
-    fun drawRectBounds(rectBounds: List<RectF>) {
-        this.rectBounds.clear()
-        this.rectBounds.addAll(rectBounds)
-        invalidate()
-        postDelayed({
-          this.rectBounds.clear()
-          invalidate()
-        }, 1000)
-    }
-}
-
 @SuppressLint("ViewConstructor") // Extra constructors unused. Not using visual layout tools
 class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObserver {
     private val currentContext: ThemedReactContext = context
@@ -79,13 +53,9 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
     private var imageAnalyzer: ImageAnalysis? = null
     private var orientationListener: OrientationEventListener? = null
     private var viewFinder: PreviewView = PreviewView(context)
-    private var rectOverlay: RectOverlay = RectOverlay(context)
-    private var barcodeFrame: BarcodeFrame? = null
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private var cameraProvider: ProcessCameraProvider? = null
     private var outputPath: String? = null
-    private var shutterAnimationDuration: Int = 50
-    private var effectLayer = View(context)
 
     // Camera Props
     private var lensType = CameraSelector.LENS_FACING_BACK
@@ -108,11 +78,6 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
         )
         installHierarchyFitter(viewFinder)
         addView(viewFinder)
-
-        effectLayer.alpha = 0F
-        effectLayer.setBackgroundColor(Color.BLACK)
-        addView(effectLayer)
-        addView(rectOverlay)
     }
 
     override fun onAttachedToWindow() {
@@ -180,11 +145,11 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
             orientationListener!!.enable()
 
             val scaleDetector =  ScaleGestureDetector(context, object: ScaleGestureDetector.SimpleOnScaleGestureListener() {
-                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                override fun onScale(detector: ScaleGestureDetector?): Boolean {
                     if (zoomMode == "off") return true
                     val cameraControl = camera?.cameraControl ?: return true
                     val zoom = camera?.cameraInfo?.zoomState?.value?.zoomRatio ?: return true
-                    val scaleFactor = detector.scaleFactor
+                    val scaleFactor = detector?.scaleFactor ?: return true
                     val scale = zoom * scaleFactor
                     cameraControl.setZoomRatio(scale)
                     return true
@@ -292,24 +257,6 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
         return AspectRatio.RATIO_16_9
     }
 
-    private fun flashViewFinder() {
-        if (shutterAnimationDuration == 0) return
-
-        effectLayer
-                .animate()
-                .alpha(1F)
-                .setDuration(shutterAnimationDuration.toLong())
-                .setListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        effectLayer.animate().alpha(0F).duration = shutterAnimationDuration.toLong()
-                    }
-                }).start()
-    }
-
-    fun setShutterAnimationDuration(duration: Int) {
-        shutterAnimationDuration = duration
-    }
-
     fun capture(options: Map<String, Any>, promise: Promise) {
         // Create the output file option to store the captured image in MediaStore
         val outputPath: String = when {
@@ -325,13 +272,6 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
         val outputOptions = ImageCapture.OutputFileOptions
                     .Builder(outputFile)
                     .build()
-
-        flashViewFinder()
-
-        val audio = getActivity().getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        if (audio.ringerMode == AudioManager.RINGER_MODE_NORMAL) {
-            MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
-        }
 
         // Setup image capture listener which is triggered after photo has been taken
         imageCapture?.takePicture(
@@ -377,12 +317,7 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
         val factory = viewFinder.meteringPointFactory
         val builder = FocusMeteringAction.Builder(factory.createPoint(x, y))
 
-        // Auto-cancel will clear focus points (and engage AF) after a duration
-        if (autoFocus == "off") builder.disableAutoCancel()
-
         camera?.cameraControl?.startFocusAndMetering(builder.build())
-        val focusRects = listOf(RectF(x-75, y-75, x+75, y+75))
-        rectOverlay.drawRectBounds(focusRects)
     }
 
     private fun onBarcodeRead(barcodes: List<String>) {
@@ -491,36 +426,6 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
 
     fun setOutputPath(path: String) {
         outputPath = path
-    }
-
-    fun setShowFrame(enabled: Boolean) {
-        if (enabled) {
-            barcodeFrame = BarcodeFrame(context)
-            val actualPreviewWidth = resources.displayMetrics.widthPixels
-            val actualPreviewHeight = resources.displayMetrics.heightPixels
-            val height: Int = convertDeviceHeightToSupportedAspectRatio(actualPreviewWidth, actualPreviewHeight)
-            barcodeFrame!!.setFrameColor(frameColor)
-            barcodeFrame!!.setLaserColor(laserColor)
-            (barcodeFrame as View).layout(0, 0, this.effectLayer.width, this.effectLayer.height)
-            addView(barcodeFrame)
-        } else if (barcodeFrame != null) {
-            removeView(barcodeFrame)
-            barcodeFrame = null
-        }
-    }
-
-    fun setLaserColor(@ColorInt color: Int) {
-        laserColor = color
-        if (barcodeFrame != null) {
-            barcodeFrame!!.setLaserColor(laserColor)
-        }
-    }
-
-    fun setFrameColor(@ColorInt color: Int) {
-        frameColor = color
-        if (barcodeFrame != null) {
-            barcodeFrame!!.setFrameColor(color)
-        }
     }
 
     private fun convertDeviceHeightToSupportedAspectRatio(actualWidth: Int, actualHeight: Int): Int {

@@ -6,7 +6,14 @@ import { CameraProps } from './Camera';
 const { CKCameraManager } = NativeModules;
 const NativeCamera = requireNativeComponent('CKCamera');
 
-const Camera = React.forwardRef((props: CameraProps, ref: any) => {
+const Camera = React.forwardRef(({
+  cameraType = 'back',
+  flashMode = 'auto',
+  focusMode = true,
+  torchMode = false,
+  zoomMode = true,
+  onReadCode,
+}: CameraProps, ref: any) => {
   const nativeRef = React.useRef();
 
   React.useImperativeHandle<any, CameraApi>(ref, () => ({
@@ -21,12 +28,17 @@ const Camera = React.forwardRef((props: CameraProps, ref: any) => {
     },
   }));
 
-  return <NativeCamera style={{ minWidth: 100, minHeight: 100 }} ref={nativeRef} {...props} />;
+  return (
+    <NativeCamera
+      ref={nativeRef}
+      cameraType={cameraType}
+      flashMode={typeof flashMode === 'boolean' ? flashMode ? 'on' : 'off' : 'auto'}
+      torchMode={torchMode ? 'on' : 'off'}
+      focusMode={focusMode ? 'on' : 'off'}
+      zoomMode={zoomMode ? 'on' : 'off'}
+      onReadCode={onReadCode}
+    />
+  );
 });
-
-Camera.defaultProps = {
-  resetFocusTimeout: 0,
-  resetFocusWhenMotionDetected: true,
-};
 
 export default Camera;
