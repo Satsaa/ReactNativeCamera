@@ -1,10 +1,10 @@
 import React from 'react';
 import { requireNativeComponent, NativeModules } from 'react-native';
 import { CameraApi } from './types';
-import { CameraProps } from './Camera';
+import { CameraProps, NativeProps } from './Camera';
 
 const { CKCameraManager } = NativeModules;
-const NativeCamera = requireNativeComponent('CKCamera');
+const NativeCamera = requireNativeComponent<NativeProps>('CKCamera');
 
 const Camera = React.forwardRef(({
   cameraType = 'back',
@@ -14,7 +14,7 @@ const Camera = React.forwardRef(({
   zoomMode = true,
   onReadCode,
 }: CameraProps, ref: any) => {
-  const nativeRef = React.useRef();
+  const nativeRef = React.useRef<any>();
 
   React.useImperativeHandle<any, CameraApi>(ref, () => ({
     capture: async () => {
