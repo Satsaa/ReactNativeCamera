@@ -24,9 +24,7 @@
   "main": "dist/index.js",
   "module": "dist/index.js",
   "source": "./src/",
-  "dependencies": {
-    "lodash": "^4.14.2"
-  },
+  "dependencies": {},
   "license": "MIT",
   "devDependencies": {
     "@react-native-community/eslint-config": "^2.0.0",
