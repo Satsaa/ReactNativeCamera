@@ -33,7 +33,6 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.events.RCTEventEmitter
-import com.rncamerakit.barcode.BarcodeFrame
 import java.io.File
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -228,7 +227,7 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
         try {
             // A variable number of use-cases can be passed here -
             // camera provides access to CameraControl & CameraInfo
-            camera = cameraProvider.bindToLifecycle(getActivity() as AppCompatActivity, cameraSelector, preview)
+            camera = cameraProvider.bindToLifecycle(getActivity() as AppCompatActivity, cameraSelector, *useCases.toTypedArray())
 
             // Attach the viewfinder's surface provider to preview use case
             preview?.setSurfaceProvider(viewFinder.surfaceProvider)
