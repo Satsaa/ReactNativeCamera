@@ -6,15 +6,17 @@ import { CameraProps, NativeProps } from './Camera';
 const { RNCameraKitModule } = NativeModules;
 const NativeCamera = requireNativeComponent<NativeProps>('CKCameraManager');
 
-const Camera = React.forwardRef(({
-  cameraType = 'back',
-  flashMode = 'auto',
-  focusMode = true,
-  torchMode = false,
-  zoomMode = true,
-  onReadCode,
-}: CameraProps, ref: any) => {
+const Camera = React.forwardRef((props: CameraProps, ref: any) => {
   const nativeRef = React.useRef<any>();
+
+  const {
+    cameraType = 'back',
+    flashMode = 'auto',
+    focusMode = true,
+    torchMode = false,
+    zoomMode = true,
+    onReadCode,
+  } = props;
 
   React.useImperativeHandle<any, CameraApi>(ref, () => ({
     capture: async (options = {}) => {
@@ -33,11 +35,13 @@ const Camera = React.forwardRef(({
   return (
     <NativeCamera
       ref={nativeRef}
+      {...props}
       cameraType={cameraType}
       flashMode={typeof flashMode === 'boolean' ? flashMode ? 'on' : 'off' : 'auto'}
       torchMode={torchMode ? 'on' : 'off'}
       focusMode={focusMode ? 'on' : 'off'}
       zoomMode={zoomMode ? 'on' : 'off'}
+      scanBarcode={!!onReadCode}
       onReadCode={onReadCode}
     />
   );

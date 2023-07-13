@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.hardware.SensorManager
+import android.hardware.camera2.*
 import android.media.AudioManager
 import android.media.MediaActionSound
 import android.net.Uri
@@ -23,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.camera.camera2.interop.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleObserver
@@ -188,12 +190,9 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
         val cameraSelector = CameraSelector.Builder().requireLensFacing(lensType).build()
 
         // Preview
-        preview = Preview.Builder()
-                // We request aspect ratio but no resolution
-                .setTargetAspectRatio(screenAspectRatio)
-                // Set initial target rotation
-                .setTargetRotation(rotation)
-                .build()
+        val previewBuilder = Preview.Builder()
+
+        preview = previewBuilder.build()
 
         // ImageCapture
         imageCapture = ImageCapture.Builder()
@@ -229,7 +228,7 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
         try {
             // A variable number of use-cases can be passed here -
             // camera provides access to CameraControl & CameraInfo
-            camera = cameraProvider.bindToLifecycle(getActivity() as AppCompatActivity, cameraSelector, *useCases.toTypedArray())
+            camera = cameraProvider.bindToLifecycle(getActivity() as AppCompatActivity, cameraSelector, preview)
 
             // Attach the viewfinder's surface provider to preview use case
             preview?.setSurfaceProvider(viewFinder.surfaceProvider)
