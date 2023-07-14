@@ -10,6 +10,7 @@ const Camera = React.forwardRef((props: CameraProps, ref: any) => {
   const nativeRef = React.useRef<any>();
 
   const {
+    isActive = true,
     cameraType = 'back',
     flashMode = 'auto',
     focusMode = true,
@@ -34,6 +35,7 @@ const Camera = React.forwardRef((props: CameraProps, ref: any) => {
     <NativeCamera
       ref={nativeRef}
       {...props}
+      isActive={isActive}
       cameraType={cameraType}
       flashMode={typeof flashMode === 'boolean' ? flashMode ? 'on' : 'off' : 'auto'}
       torchMode={torchMode ? 'on' : 'off'}

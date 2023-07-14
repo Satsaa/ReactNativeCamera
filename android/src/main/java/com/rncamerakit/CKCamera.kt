@@ -61,6 +61,7 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
     // Camera Props
     private var lensType = CameraSelector.LENS_FACING_BACK
     private var autoFocus = "on"
+    private var isActive = false
     private var zoomMode = "on"
 
     // Barcode Props
@@ -185,6 +186,11 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
         val cameraProvider = cameraProvider
                 ?: throw IllegalStateException("Camera initialization failed.")
 
+        // Must unbind the use-cases before later rebinding them
+        cameraProvider.unbindAll()
+
+        if (!isActive) return
+
         // CameraSelector
         val cameraSelector = CameraSelector.Builder().requireLensFacing(lensType).build()
 
@@ -220,9 +226,6 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
             imageAnalyzer!!.setAnalyzer(cameraExecutor, analyzer)
             useCases.add(imageAnalyzer)
         }
-
-        // Must unbind the use-cases before rebinding them
-        cameraProvider.unbindAll()
 
         try {
             // A variable number of use-cases can be passed here -
@@ -357,6 +360,12 @@ class CKCamera(context: ThemedReactContext) : FrameLayout(context), LifecycleObs
                 "onPictureTaken",
                 event
         )
+    }
+
+    fun setIsActive(value: Boolean) {
+        val restartCamera = value != isActive
+        isActive = value
+        if (restartCamera) bindCameraUseCases()
     }
 
     fun setFlashMode(mode: String?) {

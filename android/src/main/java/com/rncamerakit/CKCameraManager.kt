@@ -50,6 +50,11 @@ class CKCameraManager : SimpleViewManager<CKCamera>() {
         )
     }
 
+    @ReactProp(name = "isActive")
+    fun setIsActive(view: CKCamera, active: Boolean) {
+        view.setIsActive(active)
+    }
+
     @ReactProp(name = "cameraType")
     fun setCameraType(view: CKCamera, type: String) {
         view.setCameraType(type)
