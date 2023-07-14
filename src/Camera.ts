@@ -1,8 +1,11 @@
 import { ViewProps } from 'react-native';
 
 declare const Camera: React.FC<CameraProps>;
-
 export default Camera;
+
+export declare const getCameraPermissions: () => Promise<boolean>;
+
+export declare const requestCameraPermissions: () => Promise<boolean>;
 
 export type NativeProps = ViewProps & {
   isActive: boolean,
@@ -29,4 +32,8 @@ export type ReadCodeEventData = {
   nativeEvent: {
     codeStringValue: string;
   };
+};
+
+export type CameraApi = {
+  capture: () => Promise<{ uri: string }>,
 };

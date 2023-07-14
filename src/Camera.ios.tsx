@@ -1,7 +1,6 @@
 import React from 'react';
 import { requireNativeComponent, NativeModules } from 'react-native';
-import { CameraApi } from './types';
-import { CameraProps, NativeProps } from './Camera';
+import { CameraProps, NativeProps, CameraApi } from './Camera';
 
 const { CKCameraManager } = NativeModules;
 const NativeCamera = requireNativeComponent<NativeProps>('CKCamera');
@@ -23,12 +22,6 @@ const Camera = React.forwardRef((props: CameraProps, ref: any) => {
     capture: async () => {
       return await CKCameraManager.capture({});
     },
-    requestDeviceCameraAuthorization: async () => {
-      return await CKCameraManager.checkDeviceCameraAuthorizationStatus();
-    },
-    checkDeviceCameraAuthorizationStatus: async () => {
-      return await CKCameraManager.checkDeviceCameraAuthorizationStatus();
-    },
   }));
 
   return (
@@ -48,3 +41,11 @@ const Camera = React.forwardRef((props: CameraProps, ref: any) => {
 });
 
 export default Camera;
+
+export async function getCameraPermissions() {
+  return await CKCameraManager.checkDeviceCameraAuthorizationStatus();
+}
+
+export async function requestCameraPermission() {
+  return await CKCameraManager.checkDeviceCameraAuthorizationStatus();
+}

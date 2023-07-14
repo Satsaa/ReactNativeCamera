@@ -1,7 +1,6 @@
 import React from 'react';
 import { requireNativeComponent, findNodeHandle, NativeModules } from 'react-native';
-import { CameraApi } from './types';
-import { CameraProps, NativeProps } from './Camera';
+import { CameraProps, NativeProps, CameraApi } from './Camera';
 
 const { RNCameraKitModule } = NativeModules;
 const NativeCamera = requireNativeComponent<NativeProps>('CKCameraManager');
@@ -25,12 +24,6 @@ const Camera = React.forwardRef((props: CameraProps, ref: any) => {
       // we must use the general module and tell it what View it's supposed to be using
       return await RNCameraKitModule.capture(options, findNodeHandle(nativeRef.current ?? null));
     },
-    requestDeviceCameraAuthorization: () => {
-      throw new Error('Not implemented');
-    },
-    checkDeviceCameraAuthorizationStatus: () => {
-      throw new Error('Not implemented');
-    },
   }));
 
   return (
@@ -50,3 +43,11 @@ const Camera = React.forwardRef((props: CameraProps, ref: any) => {
 });
 
 export default Camera;
+
+export async function getCameraPermissions() {
+  return await RNCameraKitModule.getCameraPermissionStatus();
+}
+
+export async function requestCameraPermissions() {
+  return await RNCameraKitModule.requestCameraPermission();
+}
