@@ -30,7 +30,7 @@ export type CameraProps = ViewProps & {
 
 export type ReadCodeEventData = {
   nativeEvent: {
-    codeStringValue: string;
+    codeStringValue: string | null;
   };
 };
 
